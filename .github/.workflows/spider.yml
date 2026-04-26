@@ -1,0 +1,33 @@
+name: 每日可转债数据抓取
+
+on:
+  schedule:
+    - cron: '30 7 * * 1-5'   # 北京时间 15:30，周一到周五
+  workflow_dispatch:           # 允许手动触发（补抓用）
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 运行爬虫
+        env:
+          JISILU_USERNAME: ${{ secrets.JISILU_USERNAME }}
+          JISILU_PASSWORD: ${{ secrets.JISILU_PASSWORD }}
+        run: python jisilu_spider.py
+
+      - name: 提交 CSV 到仓库
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/daily/
+          git diff --cached --quiet || git commit -m "data: $(date +'%Y-%m-%d') 可转债数据"
+          git push
