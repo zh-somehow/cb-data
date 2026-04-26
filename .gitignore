@@ -2,3 +2,4 @@ config.py
 logs/
 __pycache__/
 *.pyc
+data/reports/
